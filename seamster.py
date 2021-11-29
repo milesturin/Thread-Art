@@ -1,56 +1,29 @@
-import sys
-import getopt
-from PIL import Image, ImageStat
+import sys, argparse, io
+from PIL import Image, ImageStat, ImageDraw, ImageChops
 import numpy as np
 
 IMAGE_DIR = 'images/'
 
-def rbg_to_cmyk_with_black(image):
-    """
-    bands = tuple(np.asarray(band).astype(float) for band in image.split())
-    inv_red = 1.0 - bands[0] / 255.0
-    inv_green = 1.0 - bands[1] / 255.0
-    inv_blue = 1.0 - bands[2] / 255.0
-    black = np.minimum(inv_red, inv_green, inv_blue)
-    inv_black = 1.0 - black
-    with np.errstate(invalid='ignore', divide='ignore'):
-        cyan = ((inv_red - black) / inv_black) * 255.0
-        magenta = ((inv_green - black) / inv_black) * 255.0
-        yellow = ((inv_blue - black) / inv_black) * 255.0
-    print(inv_blue)
-    print(black)
-    print(inv_blue - black)
-    black *= 255.0
-    cyan = cyan.astype(int)
-    magenta = magenta.astype(int)
-    yellow = yellow.astype(int)
-    black = black.astype(int)
-    zero = cyan * 0
-    Image.fromarray(np.uint8(np.dstack((cyan, zero, zero, zero))), 'CMYK').save('c.jpg')
-    Image.fromarray(np.uint8(np.dstack((zero, magenta, zero, zero))), 'CMYK').save('m.jpg')
-    Image.fromarray(np.uint8(np.dstack((zero, zero, yellow, zero))), 'CMYK').save('y.jpg')
-    Image.fromarray(np.uint8(np.dstack((yellow, yellow, yellow))), 'RGB').save('yyy.jpg')
-    Image.fromarray(np.uint8(np.dstack((zero, zero, zero, black))), 'CMYK').save('k.jpg')
-    return Image.fromarray(np.uint8(np.dstack((cyan, magenta, yellow, black))), 'CMYK')
-    """
-    return Image.fromarray(np.dstack((np.asarray(image.convert('CMYK'))[:,:,:3], np.asarray(image.convert('L')))), 'CMYK')
+parser = argparse.ArgumentParser()
+parser.add_argument('-n', metavar='iterations', type=int, default=5000, help='number of iterations')
+parser.add_argument('--ideal', action='store_true', help='allows the algorithm to start from any nail each iteration')
+parser.add_argument('image_name', help='the filename of the image, including the extension')
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:], 'n:')
-    iterations = -1
-    for opt, arg in opts:
-        if opt == '-n':
-            iterations = arg
-        else:
-            raise getopt.GetoptError("Unknown option")
-    if iterations == -1 or len(args) == 0:
-        raise getopt.GetoptError("Missing argument")
-    image_path = IMAGE_DIR + args[0]
-except getopt.GetoptError:
-    print(f'Invalid arguments. Proper usage:\n{sys.argv[0]} -n <iterations> <image>')
-    exit()
+args = parser.parse_args(sys.argv[1:])
 
-with Image.open(image_path, 'CMYK') as image:
-    image.save(out.jpg)
-    #rbg_to_cmyk_with_black(image).save('out.jpg')
+with Image.open(IMAGE_DIR + args.image_name) as image:
+    if image.mode != 'CMYK':
+        print('Image must be in CMYK')
+        exit()
+    mask = Image.new('CMYK', image.size, (255, 255, 255, 255))
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse([(0, 0), (image.size[0] - 1, image.size[1] - 1)], (0, 0, 0, 0))
+    image = ImageChops.subtract(image, mask)
+
+    band_means = ImageStat.Stat(image).mean #try rms
+    total = sum(band_means)
+    band_threads = [int(round(mean / total * args.n)) for mean in band_means]
+
+    for i, threads in enumerate(band_threads):
+        for j in range(threads):
 
