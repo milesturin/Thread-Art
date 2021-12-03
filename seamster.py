@@ -10,7 +10,7 @@ INSTRUCTIONS_PATH = 'instructions.txt'
 RESULT_SIZE = 5000
 RESULT_SIZE = (RESULT_SIZE, RESULT_SIZE)
 NEAR_CULL = 10
-THREAD_SUBTRACT = 20
+THREAD_SUBTRACT = 40
 
 def calculate_nail_coord(nail, total_nails, image_size):
     angle = (nail / total_nails) * tau
@@ -20,8 +20,8 @@ def calculate_nail_coord(nail, total_nails, image_size):
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', metavar='iterations', type=int, default=5000, help='number of iterations')
 parser.add_argument('-n', metavar='nails', type=int, default=300, help='number of nails on the board')
-parser.add_argument('--ideal', action='store_true', help='allows the algorithm to start from any nail each iteration')
 parser.add_argument('image_name', help='the filename of the image, including the extension')
+parser.add_argument('color_palette', type=int, help='N hexidecimal numbers representing the different colors of thread used.')
 #no visual output
 #thread multiplier
 #from textfile
@@ -29,19 +29,19 @@ parser.add_argument('image_name', help='the filename of the image, including the
 args = parser.parse_args(sys.argv[1:])
 
 with Image.open(IMAGE_DIR + args.image_name) as image:
-    if image.mode != 'CMYK':
-        print('Image must be in CMYK')
+    if image.mode != 'RGB':
+        print('Image must be in RGB')
         exit()
     if image.size[0] != image.size[1]:
         print('Image must be square')
         exit()
-    mask = Image.new('CMYK', image.size, (255, 255, 255, 255))
+    mask = Image.new('RGB', image.size, (255, 255, 255, 255))
     draw = ImageDraw.Draw(mask)
     draw.ellipse([(0, 0), (image.size[0] - 1, image.size[1] - 1)], (0, 0, 0, 0))
     image = ImageChops.subtract(image, mask)
     bands = [np.asarray(band) for band in image.split()[::-1]]
 
-    band_means = ImageStat.Stat(image).mean[::-1] #try rms
+    band_means = ImageStat.Stat(image).mean[::-1]
     total = sum(band_means)
     band_threads = [int(round(mean / total * args.i)) for mean in band_means]
 
