@@ -45,7 +45,7 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
     band_means = ImageStat.Stat(image).mean
     total = sum(band_means)
     band_threads = [int(round(mean / total * args.i)) for mean in band_means]
-    steps = tuple((threads, tuple(255 if j == i else 0 for j in range(4)), 'CMYK'[i]) for i, threads in enumerate(band_threads))
+    steps = reversed([(threads, tuple(255 if j == i else 0 for j in range(4)), 'CMYK'[i]) for i, threads in enumerate(band_threads)])
 
     nail_coords = tuple(calculate_nail_coord(nail, args.n, image.size[0]) for nail in range(args.n))
     result_nail_coords = tuple(calculate_nail_coord(nail, args.n, RESULT_SIZE[0]) for nail in range(args.n))
