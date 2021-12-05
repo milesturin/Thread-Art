@@ -45,6 +45,7 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
     band_means = ImageStat.Stat(image).mean
     total = sum(band_means)
     band_threads = [int(round(mean / total * args.i)) for mean in band_means]
+    steps = tuple((threads, tuple(255 if j == i else 0 for j in range(4)), 'CMYK'[i]) for i, threads in enumerate(band_threads))
 
     nail_coords = tuple(calculate_nail_coord(nail, args.n, image.size[0]) for nail in range(args.n))
     result_nail_coords = tuple(calculate_nail_coord(nail, args.n, RESULT_SIZE[0]) for nail in range(args.n))
@@ -53,14 +54,10 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
         result = Image.new('CMYK', RESULT_SIZE)
         draw = ImageDraw.Draw(result)
         total_threaded = 0
-        for i, threads in enumerate(band_threads):
-            line_color = [0, 0, 0, 0]
-            line_color[i] = 255
-            line_color = tuple(line_color)
-            file.write(f'SWITCH TO {"CMYK"[i]} THREAD\n')
-
+        for i, step in enumerate(steps):
+            file.write(f'SWITCH TO {step[2]} THREAD\n')
             nail = 0
-            for j in range(threads):
+            for j in range(step[0]):
                 file.write(f'{nail}, ')
                 best_nail = -1
                 most_filled = 0.0
@@ -79,11 +76,12 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
                         most_filled = filled
                 for coord in memo_bresenham(*nail_coords[nail], *nail_coords[best_nail]):
                     bands[i][coord[1]][coord[0]] = max(0, bands[i][coord[1]][coord[0]] - THREAD_SUBTRACT)
-                draw.line((result_nail_coords[nail], result_nail_coords[best_nail]), line_color)
+                draw.line((result_nail_coords[nail], result_nail_coords[best_nail]), step[1])
                 nail = best_nail
                 if j % 10 == 0:
                     print(f'{round((j + total_threaded) / args.i * 100, 1)}%', end='\r')
             file.write(f'{nail}\n')
-            total_threaded += threads
+            total_threaded += step[0]
 
     result.save(RESULT_PATH)
+    print("Done!")
