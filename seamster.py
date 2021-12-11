@@ -79,7 +79,7 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
                         best_nail = k
                         most_filled = filled
                 if best_nail == -1:
-                    print(f'FAILURE: NO MORE THREAD LOCATIONS, RAISE IMAGE RESOLUTION, OR LOWER i OR s BY {ceil(j / step[0] * 100)}%')
+                    print(f'FAILURE: NO MORE THREAD LOCATIONS, RAISE IMAGE RESOLUTION, OR LOWER i OR s BY {ceil((1.0 - j / step[0]) * 100)}%')
                     break
                 for coord in memo_bresenham(*nail_coords[nail], *nail_coords[best_nail]):
                     bands[i][coord[1]][coord[0]] = max(0, bands[i][coord[1]][coord[0]] - thread_subtract)
@@ -87,7 +87,7 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
                 draw.line((result_nail_coords[nail], result_nail_coords[best_nail]), step[1])
                 nail = best_nail
                 if j % 10 == 0:
-                    print(f'{round(((1.0 - (j + total_threaded) / args.i) * 100, 1)}%', end='\r')
+                    print(f'{round(((j + total_threaded) / args.i) * 100, 1)}%', end='\r')
             file.write(f'{nail}\n')
             total_threaded += step[0]
         thread_needed = [ceil(threads) for threads in thread_needed]
