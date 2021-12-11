@@ -87,7 +87,7 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
                 draw.line((result_nail_coords[nail], result_nail_coords[best_nail]), step[1])
                 nail = best_nail
                 if j % 10 == 0:
-                    print(f'{round((j + total_threaded) / args.i * 100, 1)}%', end='\r')
+                    print(f'{round(((1.0 - (j + total_threaded) / args.i) * 100, 1)}%', end='\r')
             file.write(f'{nail}\n')
             total_threaded += step[0]
         thread_needed = [ceil(threads) for threads in thread_needed]
