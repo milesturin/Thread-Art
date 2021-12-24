@@ -91,8 +91,10 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
             file.write(f'{nail}\n')
             total_threaded += step[0]
         thread_needed = [ceil(threads) for threads in thread_needed]
-        file.seek(0)
-        file.write(f'Cyan thread needed: {thread_needed[0]}yrds\nMagenta thread needed: {thread_needed[1]}yrds\nYellow thread needed: {thread_needed[2]}yrds\nBlack thread needed: {thread_needed[3]}yrds\n(for {args.d}ft diameter)\n')
 
     result.save(RESULT_PATH)
-    print("Done!")
+
+with open(INSTRUCTIONS_PATH, 'a') as file:
+    file.write(f'Cyan thread needed: {thread_needed[0]}yrds\nMagenta thread needed: {thread_needed[1]}yrds\nYellow thread needed: {thread_needed[2]}yrds\nBlack thread needed: {thread_needed[3]}yrds\n(for {args.d}ft diameter)\n')
+
+print("Done!")
