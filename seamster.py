@@ -21,6 +21,9 @@ def calculate_nail_coord(nail, total_nails, image_size):
 def memo_bresenham(x0, y0, x1, y1):
     return tuple(bresenham(x0, y0, x1, y1))
 
+def format_nail(nail, total_nails, end=False):
+    return str((total_nails - nail) % total_nails) + str('\n' if end else ', ')
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', metavar='iterations', type=int, default=5000, help='number of iterations')
 parser.add_argument('-n', metavar='nails', type=int, default=300, help='number of nails on the board')
@@ -62,7 +65,7 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
             file.write(f'SWITCH TO {step[2]} THREAD\n')
             nail = 0
             for j in range(step[0]):
-                file.write(f'{nail}, ')
+                file.write(format_nail(nail, args.n))
                 best_nail = -1
                 most_filled = 0.0
                 for k in range(args.n):
@@ -88,7 +91,7 @@ with Image.open(IMAGE_DIR + args.image_name) as image:
                 nail = best_nail
                 if j % 10 == 0:
                     print(f'{round(((j + total_threaded) / args.i) * 100, 1)}%', end='\r')
-            file.write(f'{nail}\n')
+            file.write(format_nail(nail, args.n, True))
             total_threaded += step[0]
         thread_needed = [ceil(threads) for threads in thread_needed]
 
