@@ -2,7 +2,11 @@
 
 For best results, scale the image down to ~350x350px, replace unimportant parts with the color white, and increase the contrast.
 
+An image after processing:
 ![](example.jpg)
+
+A finished product:
+![](finished.jpg)
 
 All parameters have default values.
 usage: seamster.py [-h] [-i iterations] [-n nails] [-s subtract] [-o order] [-d diameter] image_name
