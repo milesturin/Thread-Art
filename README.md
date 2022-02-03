@@ -1,11 +1,13 @@
 # Thread-Art
 
 For best results, scale the image down to ~350x350px, replace unimportant parts with the color white, and increase the contrast.
+You will have to play around with parameters a lot to get a good result.
 
 An image after processing:
 ![](example.jpg)
 
 A finished product:
+If you have trouble seeing the image, try squinting your eyes. You should see two faces.
 ![](finished.jpg)
 
 All parameters have default values.
